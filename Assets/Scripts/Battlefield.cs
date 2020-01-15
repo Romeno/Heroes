@@ -21,6 +21,7 @@ public class Battlefield: MonoBehaviour
 
     public SpriteRenderer background;
 
+    public GameObject gridParent;
     public GameObject cellPfb;
 
     public float busyBackgroundRatio = 0.2f;
@@ -33,10 +34,13 @@ public class Battlefield: MonoBehaviour
 
     [HideInInspector]
     public int effectiveHeight;
+    [HideInInspector]
     public int effectiveWidth;
+    [HideInInspector]
+    public Vector3 center;
 
     public bool fillFreeSpace;
-    public float cellSize;
+    public float desiredCellSize;
 
     public const float pixelsPerUnit = 100f;
 
@@ -100,6 +104,8 @@ public class Battlefield: MonoBehaviour
 
         Vector2 alignmentOffset = GetAlignmentOffset(cellSize, effectiveWidth, effectiveHeight);
 
+        center = GetBattlefieldCenter(cellSize, effectiveWidth, effectiveHeight);
+
         for (int i = 0; i < effectiveHeight; i++)
         {
             GameObject rowgo = new GameObject("Row");
@@ -119,7 +125,40 @@ public class Battlefield: MonoBehaviour
         }
     }
 
-    Vector2 GetAlignmentOffset(float cellSize, int width, int height)
+    Vector3 GetBattlefieldCenter(float cellSize, int widthInCells, int heightInCells)
+    {
+        float cameraBottomLeftX = Camera.main.transform.position.x - Camera.main.orthographicSize / res.aspectRatio;
+        float cameraBottomLeftY = Camera.main.transform.position.y - Camera.main.orthographicSize;
+
+        if (fillFreeSpace)
+        {
+            return new Vector3(
+                cameraBottomLeftX + padding + widthInCells * cellSize / 2f,
+                cameraBottomLeftY + padding + heightInCells * cellSize / 2f,
+                0
+            );
+        }
+        else
+        {
+            switch (alignment)
+            {
+                case Alignment.Center:
+                    return Camera.main.transform.position;
+                case Alignment.BottomLeft:
+                    return new Vector3(
+                        cameraBottomLeftX + padding + widthInCells * cellSize / 2f,
+                        cameraBottomLeftY + padding + heightInCells * cellSize / 2f,
+                        0
+                    );
+                default:
+                    Debug.Log("Unknown alignment of the battlefield");
+                    return Vector3.zero;
+            }
+        }
+    }
+
+    // offset from bottom left of the screen
+    Vector2 GetAlignmentOffset(float cellSize, int widthInCells, int heightInCells)
     {
         if (fillFreeSpace)
         {
@@ -130,7 +169,7 @@ public class Battlefield: MonoBehaviour
             switch (alignment)
             {
                 case Alignment.Center:
-                    return new Vector2(-cellSize * width / 2f, -cellSize * height / 2f);
+                    return new Vector2(-cellSize * widthInCells / 2f, -cellSize * heightInCells / 2f);
                 case Alignment.BottomLeft:
                     return new Vector2(-Camera.main.orthographicSize / res.aspectRatio, -Camera.main.orthographicSize);
                 default:
@@ -145,7 +184,7 @@ public class Battlefield: MonoBehaviour
     {
         if (fillFreeSpace)
         {
-            return cellSize;
+            return desiredCellSize;
         }
         else
         {
