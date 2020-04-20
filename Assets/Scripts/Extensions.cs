@@ -40,7 +40,7 @@ public static class RomenoExtensions
 
     public static void DestroyChildrenImmediate(this GameObject go
 #if UNITY_EDITOR
-        , bool undoable
+        , bool undoable = true
 #endif
         )
     {
